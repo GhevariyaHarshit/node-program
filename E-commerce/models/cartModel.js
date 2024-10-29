@@ -7,13 +7,20 @@ const cartSchema = new mongoose.Schema(
             require:true,
             ref:"Product"
         },
-        products:[
-            {
-                name:String,
-                quantity:Number,
-                price:Number
-            }
-        ],
+        user_id:{
+            type: mongoose.Schema.Types.ObjectId,
+            require:true,
+            ref:"User"
+        },
+        quantity:{
+            type : Number
+        },
+        price:{
+            type : Number
+        },
+        totalPrice:{
+            type: Number
+        }
     },
     {
         timestamps: true,

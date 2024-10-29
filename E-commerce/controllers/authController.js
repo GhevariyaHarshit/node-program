@@ -1,4 +1,3 @@
-// const { models } = require("mongoose")
 const User = require("../models/userModel")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
@@ -179,7 +178,7 @@ const resetPassword = async(req,res)=>{
     if (isEmpty(body)) return next(new AppError('form data not found', 400));
 
     try {
-
+		
         const { error } = RESET_PASSWORD_MODEL.validate(body);
 
         if (error) return next(new AppError(error.details[0].message, 400));
