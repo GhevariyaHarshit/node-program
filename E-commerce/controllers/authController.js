@@ -62,82 +62,11 @@ const login = async(req,res) =>{
 	const token = jwt.sign(
 		{id: user._id,role:user.role},
 		process.env.JWT_SECRET,
-		{expiresIn:"1h"}
+		{expiresIn:"2h"}
 	)
 	res.status(200).json({token})
+	console.log("token token token",user._id)
 }
-
-// const requestPasswordReset  = async(req,res)=>{
-// 	try{
-// 		const {email} = req.body;
-// 		// console.log("email",email)
-// 		if(!email){
-// 			return res.status(400).json({message:"Please provide email"})
-// 		}
-// 		const checkUser = await User.findOne({email})
-// 		if(!checkUser){
-// 			return res.status(400).json({message:"User not found please register"})
-// 		}
-// 		const token = jwt.sign(
-// 			{email},process.env.JWT_SECRET,{expiresIn:"1h"}
-// 		)
-
-// 		const transporter = nodemailer.createTransport({
-// 			service: "gmail",
-// 			auth: {
-// 				user: process.env.EMAIL,
-// 				pass: process.env.PASS,
-// 			},
-// 		})
-// 		// console.log("hello",transporter)
-
-// 		const receiver  = {
-// 			from:"harshitghevariya24@gmail.com",
-// 			to:email,
-// 			subject:"Passsword reset request",
-// 			text:`Click on this link to generate your new password ${process.env.CLIENT_URL}/requestpasswordreset/Token = ${token}`
-// 		}
-// 		console.log("receiver",receiver)
-
-// 		await transporter.sendMail(receiver);
-// 		// console.log("transport",transporter)
-// 		return res.status(200).json({message:"Password reset link send successfully on your gmail account"})
-
-// 	}catch(err){
-// 		return res.status(500).send({message:"Somthing went wrong",err:err})
-// 	}
-// }
-
-// const resetPassword = async(req,res)=>{
-// 	try{
-// 		const {token} = req.params;
-// 		console.log("token",token)
-// 		const {password} = req.body;
-// 		console.log("pass",password)
-
-// 		if(!password){
-// 			return res.status(400).send({message:"Please provide password"})
-// 		}
-
-// 		const decode = jwt.verify(token,process.env.JWT_SECRET)
-// 		console.log("decode",decode)
-
-// 		const user = await User.findOne({email:decode.email})
-// 		console.log(user)
-
-// 		console.log("aaaaa")
-// 		const newPassword = await hashedPassword(password)
-// 		user.password = newPassword;
-// 		console.log("b")
-// 		await user.save();
-// 		console.log("save",user.save())
-// 		console.log("c")
-
-// 		return res.status(200).send({message:"Password reset successfully"})
-// 	}catch(error){
-// 		return res.status(500).send({message:"Something went wrong",error:error})
-// 	}
-// }
 
 const requestPasswordReset  = async(req,res)=>{
 	try {
@@ -163,6 +92,7 @@ const requestPasswordReset  = async(req,res)=>{
         text: `Your OTP for password reset is: ${user.resetOtp}. 
         Validity 5 Mins`
     };
+	console.log("otp",otp)
 	await transporter.sendMail(mailOptions);
 	return res.status(200).json({message:'OTP email sent to:', email})
     } catch (error) {
@@ -174,40 +104,35 @@ const resetPassword = async(req,res)=>{
 	const body = req.body;
     const password = body.password;
     const confirmPassword = body.confirmPassword;
-
-    if (isEmpty(body)) return next(new AppError('form data not found', 400));
-
-    try {
-		
-        const { error } = RESET_PASSWORD_MODEL.validate(body);
-
-        if (error) return next(new AppError(error.details[0].message, 400));
-
-        if (password.localeCompare(confirmPassword) != 0) return next(new AppError('passwords are not equal', 400));
-
-        connection.query("SELECT * FROM user WHERE otp = ? AND otpExpire > NOW()", [[body.otp]], async (err, data, fields) => {
-            if (err) return next(new AppError(err, 500));
-
-            if (data.length == 0) return next(new AppError('Invalid or expired OTP', 400));
-
-            const solt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, solt);
-
-            connection.query("UPDATE user SET password = ?, otp = null, otpExpire = null WHERE otp = ?", [hashedPassword, body.otp], async (err, data, fields) => {
-                if (err) return next(new AppError(err, 500));
-
-                res.json({
-                    data: 'Password reset successful'
-                })
-
-            })
-
-        })
-
-    }
-    catch (err) {
-        return next(new AppError(err, 500));
-    }
+	console.log("{}{}{}{}{}",req.body)
 }
 
-module.exports = {register,login,resetPassword,requestPasswordReset,getusers,updateUser,deleteUser,user}
+const forgotPassword = async(req,res)=>{
+	const {email, password, confirmPassword} = req.body;
+	if(!email || !password || !confirmPassword){
+		return res.status(400).json({message:"All fields are required"})
+	}
+	if(password !== confirmPassword){
+		return res.status(400).json({message:"Password do not match"})
+	}
+	try{
+		const user = await User.findOne({ email: user._id });
+		// const userid = await User.find({id: user._id})
+		console.log("()()()()()()()",user)
+		// console.log("metch email",req.body.email)
+		// console.log("========================>",User.req.body.email)
+		if(!user){
+			return res.status(404).json({message:"User not found"})
+		}
+		const hashedPassword = await bcrypt.hash(password,10)
+
+		user.password = hashedPassword;
+		await user.save();
+		res.json({message:"password reset successfully"})
+	}catch(error){
+		console.log(error)
+		res.status(500).json({message:"Server error"})
+	}
+}
+
+module.exports = {register,login,resetPassword,requestPasswordReset,getusers,updateUser,deleteUser,user,forgotPassword}

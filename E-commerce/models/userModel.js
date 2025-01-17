@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
 		type:String,
 		require:[true,"Please add the user role"],
 		enum:["admin","user"],
+	},
+	otp:{
+		type:Number,
+		require:true
 	}
 	},
 	{

@@ -1,23 +1,38 @@
 // const Product = require("../models/productModel")
+// const fs = require('fs');
+// const path = require('path');
+// const multer  = require('multer')
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//       cb(null, './assets/products')
+//     },
+//     filename: function (req, file, cb) {
+//       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+//       cb(null, uniqueSuffix + file.originalname)
+//     }
+//   })
+// const upload = multer({ storage: storage })
 
 // const products = async(req,res)=>{
 //     const products = await Product.find()
 //     res.status(200).json({message:"Show all products",products})
+//     
 // }
 
 // const createProduct = async(req,res)=>{
-//     const BodyData = req.body;
-//     console.log(req.body)
+//     console.log("===============>")
+//     const {name, image, color, price, description} = req.body;
+//     console.log("{}{}{}{}",req.body)
 //     if (req.file && req.file.filename) {
 //         req.body.image = req.file.filename ;
 //     }
-//     const product = await Product.create(BodyData);
+//     const product = await Product.create(name,color,price,description);
 //     res.status(201).json({
 //         message : "Product created !",
 //         product
 //     })
-//     console.log("bodyB",BodyData)
-// }
+//     console.log("bodyB",product)
+// };
 
 // const product = async(req,res)=>{
 //     const product = await Product.findById(req.params.id)

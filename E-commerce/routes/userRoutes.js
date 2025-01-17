@@ -19,13 +19,35 @@ const storage = multer.diskStorage({
   })
   const upload = multer({ storage: storage })
 //only admin can access this router
-router.get("/admin/",verifyToken,authorizeRoles("admin"),async(req,res)=>{
-    const products = await Product.find()
-    res.json({message:"Welcome admin",products});
-    // console.log("hello",products)
+router.get("/admin/product",verifyToken,authorizeRoles("admin"),async(req,res)=>{
+    // const product = await Product.find()
+    // res.json({message:"Welcome admin",product});
+    // console.log("hello",product)
+    const ProductSearching = req.query.ProductSearching;
+    const startPrice = parseFloat(req.query.startPrice);
+    const endPrice = parseFloat(req.query.endPrice);
+    const category = req.query.categorySearching;
+    console.log(ProductSearching)
+    try {
+        let query = {};
+        if (ProductSearching) {
+            query.name = { $regex: ProductSearching, $options: 'i' };
+        }
+        if(category){
+            query.name = {$regex: categorySearching, $options: 'i'};
+        }
+        if (!isNaN(startPrice) && !isNaN(endPrice)) {
+            query.price = { $gte: startPrice, $lte: endPrice };
+        }
+        const products = await Product.find(query);
+        res.json({ products });
+        console.log("{}{}{}{}}{}",products)
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+    }
 })
-//product create
-router.post("/admin/create",verifyToken,authorizeRoles("admin"),upload.single("image"),async(req,res)=>{
+router.post("/admin",verifyToken,authorizeRoles("admin"),upload.single("image"),async(req,res)=>{
     let BodyData = req.body;
     if (req.file && req.file.filename) {
         req.body.image = req.file.filename ;
@@ -36,15 +58,10 @@ router.post("/admin/create",verifyToken,authorizeRoles("admin"),upload.single("i
         product
     })
 })
-//product id find record
 router.get("/admin/:id",verifyToken,authorizeRoles("admin"),async(req,res)=>{
     const product = await Product.findById(req.params.id)
-    if(!product){
-        return res.status(404).json({message:"Product not found",product})
-    }
-    res.status(200).json({message:`Product match this id ${req.params.id}`,product})
+    res.status(200).json(product)
 })
-//product update
 router.put("/admin/update/:id",verifyToken,authorizeRoles("admin"),upload.single("image"),async(req,res)=>{
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -68,7 +85,6 @@ router.put("/admin/update/:id",verifyToken,authorizeRoles("admin"),upload.single
     )
     res.json({message:"successfully record update",productData})
 })
-//product delete
 router.delete("/admin/delete/:id",verifyToken,authorizeRoles("admin"),async(req,res)=>{
     const product = await Product.findById(req.params.id)
     if(!product){
@@ -85,7 +101,8 @@ router.delete("/admin/delete/:id",verifyToken,authorizeRoles("admin"),async(req,
     await Product.deleteOne(product)
     res.status(200).json({message:"successfully record delete",product})
 })
-
+router.post("admin/upload",verifyToken,authorizeRoles("admin"),async(req,res)=>{
+})
 //onlu user can access this router
 router.get("/user",verifyToken,authorizeRoles("admin","user"),async(req,res)=>{
     const products = await Product.find()
